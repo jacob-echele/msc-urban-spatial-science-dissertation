@@ -5,6 +5,7 @@ library(ggplot2)
 library(janitor)
 library(tidyr)
 library(dplyr)
+library(readr)
 
 ###########################################
 #   3.3 - CASE STUDY AREA VISUALIZATIONs
@@ -76,5 +77,50 @@ minneapolis_map
 # --------------
 
 #read in data
-nyc_boundaries <- st_read("Shapefiles/New York City/nyc-borough-boundaries-water-included/nybbwi_26a/nybbwi.shp")
+nyc_boundaries <- st_read("Shapefiles/New York City/nyc-boundaries/nybb_26a/nybb.shp")%>%
+  st_simplify()%>%
+  clean_names()
 qtm(nyc_boundaries)
+
+manhattan_water <- st_read("Shapefiles/New York City/manhattan-water/tl_2025_36061_areawater.shp")%>%
+  st_simplify()%>%
+  clean_names()
+
+brooklyn_water <- st_read("Shapefiles/New York City/brooklyn-water/tl_2025_36047_areawater.shp")%>%
+  st_simplify()%>%
+  clean_names()
+
+queens_water <- st_read("Shapefiles/New York City/queens-water/tl_2025_36081_areawater.shp")%>%
+  st_simplify()%>%
+  clean_names()
+
+bronx_water <- st_read("Shapefiles/New York City/bronx-water/tl_2025_36005_areawater.shp")%>%
+  st_simplify()%>%
+  clean_names()
+
+staten_island_water <- st_read("Shapefiles/New York City/staten-island-water/tl_2025_36085_areawater.shp")%>%
+  st_simplify()%>%
+  clean_names()
+
+#Street centerlines were a bit more complicated
+nyc_street_centerlines_raw <- read_csv("Shapefiles/NEW York City/nyc-stree-centerlines.csv",
+  show_col_types = FALSE
+) %>%
+  clean_names()
+nyc_street_centerlines <- nyc_street_centerlines_raw %>%
+  st_as_sf(
+    wkt = "the_geom",
+    crs = 4326
+  )
+
+#parks were also a bit more complicated
+nyc_parks_raw <- read_csv("Shapefiles/New York City/nyc-parks.csv",
+  show_col_types = FALSE
+) %>%
+  clean_names()
+
+nyc_parks <- nyc_parks_raw %>%
+  st_as_sf(
+    wkt = "multipolygon",
+    crs = 4326
+  )
