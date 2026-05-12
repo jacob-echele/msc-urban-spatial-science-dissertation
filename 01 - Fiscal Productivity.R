@@ -317,7 +317,7 @@ mo_missing_clip <- st_intersection(mo_missing, stl_study_area)
 #actual mapping
 stl_raw_fp_quantile_with_roads <- stl_raw_fp_quantile +
   tm_shape(mo_highways_clip) +
-  tm_lines() +
+  tm_lines(col = "white", lwd = 1) +
   tm_shape(mo_interstates_clip) +
   tm_lines(col = "white", lwd = 2.75) +
   tm_shape(mo_highway_67_clip) +
@@ -630,5 +630,250 @@ saveRDS(
 ###############
 
 #read in spatial data
+nyc_boundaries <- st_read("Shapefiles/New York City/nyc-boundaries/nybb_26a/nybb.shp")%>%
+  st_simplify()%>%
+  clean_names()
 
+#not simplifying geometries to calculate area later on
+nyc_parcels <- st_read("Shapefiles/New York City/nyc-parcels-shapefile/MapPLUTO.shp")%>%
+  clean_names()
 
+#select only needed columns and remove individual information
+nyc_parcels <- nyc_parcels %>%
+  select(borough, address, zip_code, land_use, zone_dist1, lot_area, bldg_area, num_bldgs, num_floors, units_res, units_total, assess_land, assess_tot, year_built, bbl, latitude, longitude, geometry)%>%
+  rename( #rename key columns to stay consistent with St. Louis and Minneapolis names
+    parcel_id = bbl,
+    asd_total = assess_tot,
+    asr_land_use = land_use,
+    zoning = zone_dist1,
+    sqft = lot_area
+  )
+
+# -------------------------------
+#    calculating value metrics
+# -------------------------------
+
+nyc_parcels <- nyc_parcels%>%
+  mutate(
+    parcel_area_sqft = as.numeric(st_area(geometry)),
+    parcel_area_acres = parcel_area_sqft / 43560, #43,560 sqft per acre
+    value_per_acre = asd_total / parcel_area_acres,
+    log_value_per_acre = log1p(value_per_acre)
+  )%>%
+  filter( #filter out parcels with 0 sqft and NA values
+    parcel_area_sqft > 0,
+    !is.na(asd_total),
+    !is.na(value_per_acre),
+    is.finite(value_per_acre)
+  )
+
+#more filtering out unrealistic data
+nyc_parcels <- nyc_parcels%>%
+  filter(
+    parcel_area_acres > 0,
+    is.finite(value_per_acre),
+    value_per_acre >= 0
+  )
+
+# --------------------
+#    making hex map
+# --------------------
+
+nyc_hex_1km <- st_make_grid(
+  nyc_boundaries,
+  cellsize = 3280, #3280 ft in one kilometer
+  square = FALSE
+)%>%
+  st_sf()%>%
+  mutate(hex_id = row_number())
+
+#link hex map to study area
+nyc_hex_1km <- st_intersection(nyc_hex_1km, nyc_boundaries)%>%
+  select(hex_id, geometry)
+
+#assign centroids to parcels
+nyc_parcel_centroids <- st_centroid(nyc_parcels)
+
+#join centroids to hexes; any parcel centroid that falls within hex is counted
+nyc_parcels_hex <- st_join(
+  nyc_parcel_centroids,
+  nyc_hex_1km,
+  join = st_within
+)
+
+# ----------------------------------------------
+#    calculating hex aggregated value metrics
+# ----------------------------------------------
+
+nyc_hex_fp <- nyc_parcels_hex%>% #every parcel belongs inside a hex
+  st_drop_geometry()%>%
+  filter(!is.na(hex_id))%>% #get rid of parcels with centroids on top of hex boundaries
+  group_by(hex_id)%>% #calculate for each hex, not each parcel
+  summarise(
+    parcel_count = n(), #number of parcels in each hex
+    total_assessed_value = sum(asd_total, na.rm = TRUE), #assessed value of all parcels within hex
+    total_parcel_area_acres = sum(parcel_area_acres, na.rm = TRUE), #total area of all parcels within hex
+    fiscal_productivity = total_assessed_value / total_parcel_area_acres, #fiscal productivity of all parcels within hex
+    median_value_per_acre = median(value_per_acre, na.rm = TRUE), #median parcel prodcutivity within hex
+    .groups = "drop"
+  )%>%
+  right_join(nyc_hex_1km, by = "hex_id")%>% #join back geometry
+  st_as_sf() #convert back to spatial object for mapping
+
+#adding log values
+nyc_hex_fp <- nyc_hex_fp%>%
+  mutate(
+    log_fiscal_productivity = log1p(fiscal_productivity),
+    log_median_value_per_acre = log1p(median_value_per_acre)
+  )
+
+# --------------------
+#    actual mapping
+# --------------------
+
+### MULTIPLE MAP TYPES FOR COMPARISON, NOT SURE WHAT WILL BE FINAL AS OF 12/5/2026 ###
+
+#raw fiscal productivity; QUANTILE, n=6
+nyc_raw_fp <- tm_shape(nyc_hex_fp) +
+  tm_polygons(
+    "log_fiscal_productivity",
+    style = "quantile",
+    n = 6,
+    title = "Log assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+nyc_raw_fp
+
+#raw fiscale productivity; QUANTILE, n=7
+nyc_raw_fp_quantile <- tm_shape(nyc_hex_fp) +
+  tm_polygons(
+    "fiscal_productivity",
+    style = "quantile",
+    n = 7,
+    title = "Assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+nyc_raw_fp_quantile
+
+#log fiscal productivity; QUANTILE, n=6
+nyc_log_fp <- tm_shape(nyc_hex_fp) +
+  tm_polygons(
+    "log_fiscal_productivity",
+    style = "quantile",
+    n = 6,
+    title = "Log assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+nyc_log_fp
+
+#log fiscal productivity; QUANTILE, n=8
+nyc_log_fp_8 <- tm_shape(nyc_hex_fp) +
+  tm_polygons(
+    "log_fiscal_productivity",
+    style = "quantile",
+    n = 8,
+    title = "Log assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+nyc_log_fp_8
+
+#log fiscal prodcutivity; JENKS, n=7
+nyc_log_fp_jenks <- tm_shape(nyc_hex_fp) +
+  tm_polygons(
+    "log_fiscal_productivity",
+    style = "jenks",
+    n = 7,
+    title = "Log assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+nyc_log_fp_jenks
+
+# -------------------------------------------------------
+#    ADDING ROADS TO MAP FOR CONTEXT/PERSONAL INTEREST
+# -------------------------------------------------------
+
+#read in street centerline spatial data
+#Street centerlines were a bit more complicated
+nyc_street_centerlines_raw <- read_csv("Shapefiles/NEW York City/nyc-stree-centerlines.csv",
+                                       show_col_types = FALSE
+)%>%
+  clean_names()
+
+nyc_street_centerlines <- nyc_street_centerlines_raw %>%
+  st_as_sf(
+    wkt = "the_geom",
+    crs = 4326
+  ) %>%
+  st_transform(2263) #New York/Long Island CRS
+
+#assign different road types to own variables for hierarchical mapping
+nyc_highways <- nyc_street_centerlines%>%
+  filter(rw_type == 2)
+nyc_bridges <- nyc_street_centerlines%>%
+  filter(rw_type == 3)
+nyc_tunnels <- nyc_street_centerlines%>%
+  filter(rw_type == 4)
+
+nyc_raw_fp_quantile_with_roads <- tm_shape(nyc_hex_fp) +
+  tm_polygons("fiscal_productivity", style = "quantile", n = 7) +
+  tm_shape(nyc_highways) +
+  tm_lines(col = "white", lwd = 1.5) +
+  tm_shape(nyc_bridges) +
+  tm_lines(col = "white", lwd = 1.5) +
+  tm_shape(nyc_tunnels) +
+  tm_lines(col = "white", lwd = 1.5)
+
+#layout/legend
+nyc_raw_fp_quantile_with_roads <- nyc_raw_fp_quantile_with_roads +
+  tm_compass(type = "arrow", position = c("left", "top")) +
+  tm_scalebar(breaks = c(0,2,4), text.size = 1, position = c("left", "top"))
+
+nyc_raw_fp_quantile_with_roads
+
+# ------------------------
+#    summary statistics
+# ------------------------
+
+#min, 1Q, Median, Mean, 3Q, max, NAs
+summary(nyc_hex_fp$fiscal_productivity)
+
+#percentiles
+quantile(
+  nyc_hex_fp$fiscal_productivity,
+  probs = c(0, .1, .25, .5, .75, .9, .95, .99, 1),
+  na.rm = TRUE
+)
+
+# -----------------------------------------------------
+#    saving outputs for future use/easier processing
+# -----------------------------------------------------
+
+#main stl hex map with aggregated values and spatial data
+st_write(
+  nyc_hex_fp,
+  "Processed Data/nyc_hex_fiscal_productivity.geojson",
+  delete_dsn = TRUE
+)
+
+#R-native version
+saveRDS(
+  nyc_hex_fp,
+  "Processed Data/nyc_hex_fiscal_productivity.rds"
+)
+
+#combined parcels; R-native version
+saveRDS(
+  nyc_parcels,
+  "Processed Data/nyc_parcels.rds"
+)
+
+#initial hex grid; R-native version
+saveRDS(
+  nyc_hex_1km, 
+  "Processed Data/nyc_hex_1km.rds"
+)

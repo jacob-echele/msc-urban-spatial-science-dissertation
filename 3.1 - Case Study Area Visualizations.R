@@ -110,7 +110,7 @@ tm_shape(stl_city_water) +
 tm_shape(stl_county_water) +
   tm_lines(col = "#8CCCF5") +
 tm_shape(mo_highways_clip) +
-  tm_lines() +
+  tm_lines(col = "black", lwd = 1) +
 tm_shape(mo_interstates_clip) +
   tm_lines(col = "black", lwd = 2.75) +
 tm_shape(mo_highway_67_clip) +
