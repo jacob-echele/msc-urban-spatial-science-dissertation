@@ -819,8 +819,7 @@ nyc_bridges <- nyc_street_centerlines%>%
 nyc_tunnels <- nyc_street_centerlines%>%
   filter(rw_type == 4)
 
-nyc_raw_fp_quantile_with_roads <- tm_shape(nyc_hex_fp) +
-  tm_polygons("fiscal_productivity", style = "quantile", n = 7) +
+nyc_raw_fp_quantile_with_roads <- nyc_raw_fp_quantile +
   tm_shape(nyc_highways) +
   tm_lines(col = "white", lwd = 1.5) +
   tm_shape(nyc_bridges) +
