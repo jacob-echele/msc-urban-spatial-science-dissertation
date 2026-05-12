@@ -82,7 +82,7 @@ tm_shape(stl_city_parcel_shapefile) +
 # -------------------------------
 
 #city
-stl_city_parcel_shapefile <- stl_city_parcel_shapefile %>%
+stl_city_parcel_shapefile <- stl_city_parcel_shapefile%>%
   mutate(
     parcel_area_sqft = as.numeric(st_area(geometry)),
     parcel_area_acres = parcel_area_sqft / 43560, #43,560 sqft per acre
@@ -91,7 +91,7 @@ stl_city_parcel_shapefile <- stl_city_parcel_shapefile %>%
   )
 
 #county
-stl_county_parcel_shapefile <- stl_county_parcel_shapefile %>%
+stl_county_parcel_shapefile <- stl_county_parcel_shapefile%>%
   mutate(
     parcel_area_sqft = as.numeric(st_area(geometry)),
     parcel_area_acres = parcel_area_sqft / 43560, #43,560 sqft per acre
@@ -104,11 +104,11 @@ stl_county_parcel_shapefile <- stl_county_parcel_shapefile %>%
 # ----------------------------------------------------------------------------------
 
 #city
-stl_city_parcel_shapefile <- stl_city_parcel_shapefile %>%
+stl_city_parcel_shapefile <- stl_city_parcel_shapefile%>%
   mutate(source = "city")
 
 #county
-stl_county_parcel_shapefile <- stl_county_parcel_shapefile %>%
+stl_county_parcel_shapefile <- stl_county_parcel_shapefile%>%
   mutate(source = "county")
 
 # -------------------------
@@ -117,15 +117,15 @@ stl_county_parcel_shapefile <- stl_county_parcel_shapefile %>%
 
 #ensuring essential columns are same data type for combining data
 #parcel_id
-stl_city_parcel_shapefile <- stl_city_parcel_shapefile %>%
+stl_city_parcel_shapefile <- stl_city_parcel_shapefile%>%
   mutate(parcel_id = as.character(parcel_id))
-stl_county_parcel_shapefile <- stl_county_parcel_shapefile %>%
+stl_county_parcel_shapefile <- stl_county_parcel_shapefile%>%
   mutate(parcel_id = as.character(parcel_id))
 
 #asr_land_use
-stl_city_parcel_shapefile <- stl_city_parcel_shapefile %>%
+stl_city_parcel_shapefile <- stl_city_parcel_shapefile%>%
   mutate(asr_land_use = as.character(asr_land_use))
-stl_county_parcel_shapefile <- stl_county_parcel_shapefile %>%
+stl_county_parcel_shapefile <- stl_county_parcel_shapefile%>%
   mutate(asr_land_use = as.character(asr_land_use))
 
 #actual combination
@@ -138,13 +138,13 @@ stl_parcels_combined <- bind_rows(
 #    calculating combined value metrics
 # ----------------------------------------
 
-stl_parcels_combined <- stl_parcels_combined %>%
+stl_parcels_combined <- stl_parcels_combined%>%
   mutate(
     parcel_area_sqft = as.numeric(st_area(geometry)),
     parcel_area_acres = parcel_area_sqft / 43560,
     value_per_acre = asd_total / parcel_area_acres,
     log_value_per_acre = log1p(value_per_acre)
-  ) %>%
+  )%>%
   filter( #filter out parcels with 0 sqft and NA values
     parcel_area_sqft > 0,
     !is.na(asd_total),
@@ -153,7 +153,7 @@ stl_parcels_combined <- stl_parcels_combined %>%
   )
 
 #more filtering out unrealistic data
-stl_parcels_combined <- stl_parcels_combined %>%
+stl_parcels_combined <- stl_parcels_combined%>%
   filter(
     parcel_area_acres > 0,
     is.finite(value_per_acre),
@@ -206,7 +206,7 @@ stl_hex_fp <- stl_parcels_hex%>% #every parcel belongs inside a hex
   st_as_sf() #convert back to spatial object for mapping
 
 #adding log values
-stl_hex_fp <- stl_hex_fp %>%
+stl_hex_fp <- stl_hex_fp%>%
   mutate(
     log_fiscal_productivity = log1p(fiscal_productivity),
     log_median_value_per_acre = log1p(median_value_per_acre)
@@ -327,4 +327,308 @@ stl_raw_fp_quantile_with_roads <- stl_raw_fp_quantile +
   tm_shape(mo_missing_clip) +
   tm_lines(col = "white", lwd = 1)
 
+#layout/legend
+stl_raw_fp_quantile_with_roads +
+  tm_compass(type = "arrow", position = c("left", "top")) +
+  tm_scalebar(breaks = c(0,2,4), text.size = 1, position = c("left", "top"))
+
 stl_raw_fp_quantile_with_roads
+
+# ------------------------
+#    summary statistics
+# ------------------------
+
+#min, 1Q, Median, Mean, 3Q, max, NAs
+summary(stl_hex_fp$fiscal_productivity)
+
+#percentiles
+quantile(
+  stl_hex_fp$fiscal_productivity,
+  probs = c(0, .1, .25, .5, .75, .9, .95, .99, 1),
+  na.rm = TRUE
+)
+
+# -----------------------------------------------------
+#    saving outputs for future use/easier processing
+# -----------------------------------------------------
+
+#main stl hex map with aggregated values and spatial data
+st_write(
+  stl_hex_fp,
+  "Processed Data/stl_hex_fiscal_productivity.geojson",
+  delete_dsn = TRUE
+)
+
+#R-native version
+saveRDS(
+  stl_hex_fp,
+  "Processed Data/stl_hex_fiscal_productivity.rds"
+)
+
+#combined parcels; R-native version
+saveRDS(
+  stl_parcels_combined,
+  "Processed Data/stl_parcels_combined.rds"
+)
+
+#initial hex grid; R-native version
+saveRDS(
+  stl_hex_1km, 
+  "Processed Data/stl_hex_1km.rds"
+)
+
+##################
+#   MINNEAPOLIS
+##################
+
+#read in spatial data
+hennepin_county_borders <- st_read("Shapefiles/Minneapolis/hennepin-county-boundaries/Hennepin_County_Boundary.shp")%>%
+  st_simplify()%>%
+  clean_names()
+
+#not simplifying geometries to calculate area later on
+hennepin_county_parcels <- st_read("Shapefiles/Minneapolis/hennepin-county-parcels/County_Parcels.shp")%>%
+  clean_names()
+
+#select only needed columns and remove individual information
+hennepin_county_parcels <- hennepin_county_parcels%>%
+  select(objectid,pid,
+    parcel_are, total_mv1, land_mv1, bldg_mv1, pr_typ_nm1, build_yr, sale_price, sale_date, geometry)%>%
+  rename( #rename key columns to stay consistent with St. Louis names
+    parcel_id = pid,
+    asd_total = total_mv1,
+    asr_land_use = pr_typ_nm1
+  )
+
+# -------------------------------
+#    calculating value metrics
+# -------------------------------
+
+hennepin_county_parcels <- hennepin_county_parcels%>%
+  mutate(
+    parcel_area_sqft = as.numeric(st_area(geometry)),
+    parcel_area_acres = parcel_area_sqft / 43560, #43,560 sqft per acre
+    value_per_acre = asd_total / parcel_area_acres,
+    log_value_per_acre = log1p(value_per_acre)
+  )%>%
+  filter( #filter out parcels with 0 sqft and NA values
+  parcel_area_sqft > 0,
+  !is.na(asd_total),
+  !is.na(value_per_acre),
+  is.finite(value_per_acre)
+)
+
+#more filtering out unrealistic data
+hennepin_county_parcels <- hennepin_county_parcels%>%
+  filter(
+    parcel_area_acres > 0,
+    is.finite(value_per_acre),
+    value_per_acre >= 0
+  )
+
+# --------------------
+#    making hex map
+# --------------------
+
+hennepin_county_hex_1km <- st_make_grid(
+  hennepin_county_borders,
+  cellsize = 3280, #3280 ft in one kilometer
+  square = FALSE
+)%>%
+  st_sf()%>%
+  mutate(hex_id = row_number())
+
+#link hex map to study area
+hennepin_county_hex_1km <- st_intersection(hennepin_county_hex_1km, hennepin_county_borders)%>%
+  select(hex_id, geometry)
+
+#assign centroids to parcels
+hennepin_county_parcel_centroids <- st_centroid(hennepin_county_parcels)
+
+#join centroids to hexes; any parcel centroid that falls within hex is counted
+hennepin_county_parcels_hex <- st_join(
+  hennepin_county_parcel_centroids,
+  hennepin_county_hex_1km,
+  join = st_within
+)
+
+# ----------------------------------------------
+#    calculating hex aggregated value metrics
+# ----------------------------------------------
+
+hennepin_county_hex_fp <- hennepin_county_parcels_hex%>% #every parcel belongs inside a hex
+  st_drop_geometry()%>%
+  filter(!is.na(hex_id))%>% #get rid of parcels with centroids on top of hex boundaries
+  group_by(hex_id)%>% #calculate for each hex, not each parcel
+  summarise(
+    parcel_count = n(), #number of parcels in each hex
+    total_assessed_value = sum(asd_total, na.rm = TRUE), #assessed value of all parcels within hex
+    total_parcel_area_acres = sum(parcel_area_acres, na.rm = TRUE), #total area of all parcels within hex
+    fiscal_productivity = total_assessed_value / total_parcel_area_acres, #fiscal productivity of all parcels within hex
+    median_value_per_acre = median(value_per_acre, na.rm = TRUE), #median parcel prodcutivity within hex
+    .groups = "drop"
+  )%>%
+  right_join(hennepin_county_hex_1km, by = "hex_id")%>% #join back geometry
+  st_as_sf() #convert back to spatial object for mapping
+
+#adding log values
+hennepin_county_hex_fp <- hennepin_county_hex_fp%>%
+  mutate(
+    log_fiscal_productivity = log1p(fiscal_productivity),
+    log_median_value_per_acre = log1p(median_value_per_acre)
+  )
+
+# --------------------
+#    actual mapping
+# --------------------
+
+### MULTIPLE MAP TYPES FOR COMPARISON, NOT SURE WHAT WILL BE FINAL AS OF 12/5/2026 ###
+
+#raw fiscal productivity; QUANTILE, n=6
+hennepin_county_raw_fp <- tm_shape(hennepin_county_hex_fp) +
+  tm_polygons(
+    "log_fiscal_productivity",
+    style = "quantile",
+    n = 6,
+    title = "Log assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+hennepin_county_raw_fp
+
+#raw fiscale productivity; QUANTILE, n=7
+hennepin_county_raw_fp_quantile <- tm_shape(hennepin_county_hex_fp) +
+  tm_polygons(
+    "fiscal_productivity",
+    style = "quantile",
+    n = 7,
+    title = "Assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+hennepin_county_raw_fp_quantile
+
+#log fiscal productivity; QUANTILE, n=6
+hennepin_county_log_fp <- tm_shape(hennepin_county_hex_fp) +
+  tm_polygons(
+    "log_fiscal_productivity",
+    style = "quantile",
+    n = 6,
+    title = "Log assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+hennepin_county_log_fp
+
+#log fiscal productivity; QUANTILE, n=8
+hennepin_county_log_fp_8 <- tm_shape(hennepin_county_hex_fp) +
+  tm_polygons(
+    "log_fiscal_productivity",
+    style = "quantile",
+    n = 8,
+    title = "Log assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+hennepin_county_log_fp_8
+
+#log fiscal prodcutivity; JENKS, n=7
+hennepin_county_log_fp_jenks <- tm_shape(hennepin_county_hex_fp) +
+  tm_polygons(
+    "log_fiscal_productivity",
+    style = "jenks",
+    n = 7,
+    title = "Log assessed value per acre"
+  ) +
+  tm_layout(frame = FALSE)
+
+hennepin_county_log_fp_jenks
+
+# -------------------------------------------------------
+#    ADDING ROADS TO MAP FOR CONTEXT/PERSONAL INTEREST
+# -------------------------------------------------------
+
+#read in road spatial data
+hennepin_county_roads <- st_read("Shapefiles/Minneapolis/hennepin-county-street-centerlines/Hennepin_County_Street_Centerlines.shp")%>%
+  st_simplify()%>%
+  clean_names()%>%
+  filter(route_sys %in% c("01", "02", "03", "04")) #reduce visual clutter; 01 - interstate, 02 - US highway, 03 - MN highway, 04 - county road
+
+#assign different road types to own variables for hierarchical mapping
+mn_interstates <- hennepin_county_roads%>%
+  filter(route_sys == "01")
+mn_us_highways <- hennepin_county_roads%>%
+  filter(route_sys == "02")
+mn_highways <- hennepin_county_roads%>%
+  filter(route_sys == "03")
+mn_county_highways <- hennepin_county_roads%>%
+  filter(route_sys == "04")
+
+#actual mapping
+hennepin_county_raw_fp_quantile_with_roads <- hennepin_county_raw_fp_quantile +
+  tm_shape(mn_interstates) +
+  tm_lines(col = "white", lwd = 2.75) +
+  tm_shape(mn_us_highways) +
+  tm_lines(col = "white", lwd = 2) +
+  tm_shape(mn_highways) +
+  tm_lines(col = "white", lwd = 1.5) +
+  tm_shape(mn_county_highways) +
+  tm_lines(col = "white", lwd = 1)
+
+#layout/legend
+hennepin_county_raw_fp_quantile_with_roads <- hennepin_county_raw_fp_quantile_with_roads +
+  tm_compass(type = "arrow", position = c("left", "top")) +
+  tm_scalebar(breaks = c(0,2,4), text.size = 1, position = c("right", "top"))
+
+hennepin_county_raw_fp_quantile_with_roads
+
+# ------------------------
+#    summary statistics
+# ------------------------
+
+#min, 1Q, Median, Mean, 3Q, max, NAs
+summary(hennepin_county_hex_fp$fiscal_productivity)
+
+#percentiles
+quantile(
+  hennepin_county_hex_fp$fiscal_productivity,
+  probs = c(0, .1, .25, .5, .75, .9, .95, .99, 1),
+  na.rm = TRUE
+)
+
+# -----------------------------------------------------
+#    saving outputs for future use/easier processing
+# -----------------------------------------------------
+
+#main stl hex map with aggregated values and spatial data
+st_write(
+  hennepin_county_hex_fp,
+  "Processed Data/hennepin_county_hex_fiscal_productivity.geojson",
+  delete_dsn = TRUE
+)
+
+#R-native version
+saveRDS(
+  hennepin_county_hex_fp,
+  "Processed Data/hennepin_county_hex_fiscal_productivity.rds"
+)
+
+#combined parcels; R-native version
+saveRDS(
+  hennepin_county_parcels,
+  "Processed Data/hennepin_county_parcels.rds"
+)
+
+#initial hex grid; R-native version
+saveRDS(
+  hennepin_county_hex_1km, 
+  "Processed Data/hennepin_county_hex_1km.rds"
+)
+
+###############
+#   NEW YORK
+###############
+
+#read in spatial data
+
+
