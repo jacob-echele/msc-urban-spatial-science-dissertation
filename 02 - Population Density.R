@@ -123,7 +123,7 @@ qtm(stl_hex_population_density, fill = "pop_density_acre")
 # --------------------
 
 #raw fiscal productivity; QUANTILE, n=7
-stl_hex_population_density_quantile <- tm_shape(stl_hex_population_density) +
+stl_hex_population_density_quantile <- tm_shape(stl_hex_population_density, unit = "mi") +
   tm_polygons(
     "pop_density_acre",
     style = "quantile",
@@ -306,7 +306,7 @@ qtm(hennepin_county_hex_population_density, fill = "pop_density_acre")
 # --------------------
 
 #raw fiscal productivity; QUANTILE, n=6
-hennepin_county_hex_population_density_quantile <- tm_shape(hennepin_county_hex_population_density) +
+hennepin_county_hex_population_density_quantile <- tm_shape(hennepin_county_hex_population_density, unit = "mi") +
   tm_polygons(
     "pop_density_acre",
     style = "quantile",
@@ -477,7 +477,7 @@ qtm(nyc_hex_population_density, fill = "pop_density_acre")
 # --------------------
 
 #raw fiscal productivity; QUANTILE, n=7
-nyc_hex_population_density_quantile <- tm_shape(nyc_hex_population_density) +
+nyc_hex_population_density_quantile <- tm_shape(nyc_hex_population_density, unit = "mi") +
   tm_polygons(
     "pop_density_acre",
     style = "quantile",

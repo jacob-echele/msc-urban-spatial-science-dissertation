@@ -219,7 +219,7 @@ stl_hex_fp <- stl_hex_fp%>%
 ### MULTIPLE MAP TYPES FOR COMPARISON, NOT SURE WHAT WILL BE FINAL AS OF 12/5/2026 ###
 
 #raw fiscal productivity; QUANTILE, n=6
-stl_raw_fp <- tm_shape(stl_hex_fp) +
+stl_raw_fp <- tm_shape(stl_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "quantile",
@@ -230,7 +230,7 @@ stl_raw_fp <- tm_shape(stl_hex_fp) +
 
 stl_raw_fp
 #raw fiscale productivity; QUANTILE, n=7
-stl_raw_fp_quantile <- tm_shape(stl_hex_fp) +
+stl_raw_fp_quantile <- tm_shape(stl_hex_fp, unit = "mi") +
   tm_polygons(
     "fiscal_productivity",
     style = "quantile",
@@ -242,7 +242,7 @@ stl_raw_fp_quantile <- tm_shape(stl_hex_fp) +
 stl_raw_fp_quantile
 
 #log fiscal productivity; QUANTILE, n=6
-stl_log_fp <- tm_shape(stl_hex_fp) +
+stl_log_fp <- tm_shape(stl_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "quantile",
@@ -254,7 +254,7 @@ stl_log_fp <- tm_shape(stl_hex_fp) +
 stl_log_fp
 
 #log fiscal productivity; QUANTILE, n=8
-stl_log_fp_8 <- tm_shape(stl_hex_fp) +
+stl_log_fp_8 <- tm_shape(stl_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "quantile",
@@ -266,7 +266,7 @@ stl_log_fp_8 <- tm_shape(stl_hex_fp) +
 stl_log_fp_8
 
 #log fiscal prodcutivity; JENKS, n=7
-stl_log_fp_jenks <- tm_shape(stl_hex_fp) +
+stl_log_fp_jenks <- tm_shape(stl_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "jenks",
@@ -485,7 +485,7 @@ hennepin_county_hex_fp <- hennepin_county_hex_fp%>%
 ### MULTIPLE MAP TYPES FOR COMPARISON, NOT SURE WHAT WILL BE FINAL AS OF 12/5/2026 ###
 
 #raw fiscal productivity; QUANTILE, n=6
-hennepin_county_raw_fp <- tm_shape(hennepin_county_hex_fp) +
+hennepin_county_raw_fp <- tm_shape(hennepin_county_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "quantile",
@@ -497,7 +497,7 @@ hennepin_county_raw_fp <- tm_shape(hennepin_county_hex_fp) +
 hennepin_county_raw_fp
 
 #raw fiscale productivity; QUANTILE, n=7
-hennepin_county_raw_fp_quantile <- tm_shape(hennepin_county_hex_fp) +
+hennepin_county_raw_fp_quantile <- tm_shape(hennepin_county_hex_fp, unit = "mi") +
   tm_polygons(
     "fiscal_productivity",
     style = "quantile",
@@ -509,7 +509,7 @@ hennepin_county_raw_fp_quantile <- tm_shape(hennepin_county_hex_fp) +
 hennepin_county_raw_fp_quantile
 
 #log fiscal productivity; QUANTILE, n=6
-hennepin_county_log_fp <- tm_shape(hennepin_county_hex_fp) +
+hennepin_county_log_fp <- tm_shape(hennepin_county_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "quantile",
@@ -521,7 +521,7 @@ hennepin_county_log_fp <- tm_shape(hennepin_county_hex_fp) +
 hennepin_county_log_fp
 
 #log fiscal productivity; QUANTILE, n=8
-hennepin_county_log_fp_8 <- tm_shape(hennepin_county_hex_fp) +
+hennepin_county_log_fp_8 <- tm_shape(hennepin_county_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "quantile",
@@ -533,7 +533,7 @@ hennepin_county_log_fp_8 <- tm_shape(hennepin_county_hex_fp) +
 hennepin_county_log_fp_8
 
 #log fiscal prodcutivity; JENKS, n=7
-hennepin_county_log_fp_jenks <- tm_shape(hennepin_county_hex_fp) +
+hennepin_county_log_fp_jenks <- tm_shape(hennepin_county_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "jenks",
@@ -734,7 +734,7 @@ nyc_hex_fp <- nyc_hex_fp%>%
 ### MULTIPLE MAP TYPES FOR COMPARISON, NOT SURE WHAT WILL BE FINAL AS OF 12/5/2026 ###
 
 #raw fiscal productivity; QUANTILE, n=6
-nyc_raw_fp <- tm_shape(nyc_hex_fp) +
+nyc_raw_fp <- tm_shape(nyc_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "quantile",
@@ -746,7 +746,7 @@ nyc_raw_fp <- tm_shape(nyc_hex_fp) +
 nyc_raw_fp
 
 #raw fiscale productivity; QUANTILE, n=7
-nyc_raw_fp_quantile <- tm_shape(nyc_hex_fp) +
+nyc_raw_fp_quantile <- tm_shape(nyc_hex_fp, unit = "mi") +
   tm_polygons(
     "fiscal_productivity",
     style = "quantile",
@@ -758,7 +758,7 @@ nyc_raw_fp_quantile <- tm_shape(nyc_hex_fp) +
 nyc_raw_fp_quantile
 
 #log fiscal productivity; QUANTILE, n=6
-nyc_log_fp <- tm_shape(nyc_hex_fp) +
+nyc_log_fp <- tm_shape(nyc_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "quantile",
@@ -770,7 +770,7 @@ nyc_log_fp <- tm_shape(nyc_hex_fp) +
 nyc_log_fp
 
 #log fiscal productivity; QUANTILE, n=8
-nyc_log_fp_8 <- tm_shape(nyc_hex_fp) +
+nyc_log_fp_8 <- tm_shape(nyc_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "quantile",
@@ -782,7 +782,7 @@ nyc_log_fp_8 <- tm_shape(nyc_hex_fp) +
 nyc_log_fp_8
 
 #log fiscal prodcutivity; JENKS, n=7
-nyc_log_fp_jenks <- tm_shape(nyc_hex_fp) +
+nyc_log_fp_jenks <- tm_shape(nyc_hex_fp, unit = "mi") +
   tm_polygons(
     "log_fiscal_productivity",
     style = "jenks",

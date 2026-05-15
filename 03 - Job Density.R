@@ -138,7 +138,7 @@ qtm(stl_hex_job_density, fill = "perceived_job_density")
 # --------------------
 
 #regular job density; QUANTILE, n=7
-stl_hex_job_density_quantile <- tm_shape(stl_hex_job_density) +
+stl_hex_job_density_quantile <- tm_shape(stl_hex_job_density, unit = "mi") +
   tm_polygons(
     "job_density_acre",
     style = "quantile",
@@ -150,7 +150,7 @@ stl_hex_job_density_quantile <- tm_shape(stl_hex_job_density) +
 stl_hex_job_density_quantile
 
 #perceived job density; QUANTILE, n=7
-stl_hex_perceived_job_density_quantile <- tm_shape(stl_hex_job_density) +
+stl_hex_perceived_job_density_quantile <- tm_shape(stl_hex_job_density, unit = "mi") +
   tm_polygons(
     "perceived_job_density",
     style = "quantile",
@@ -374,7 +374,7 @@ qtm(hennepin_county_hex_job_density, fill = "perceived_job_density")
 # --------------------
 
 #regular job density; QUANTILE, n=7
-hennepin_county_hex_job_density_quantile <- tm_shape(hennepin_county_hex_job_density) +
+hennepin_county_hex_job_density_quantile <- tm_shape(hennepin_county_hex_job_density, unit = "mi") +
   tm_polygons(
     "job_density_acre",
     style = "quantile",
@@ -386,7 +386,7 @@ hennepin_county_hex_job_density_quantile <- tm_shape(hennepin_county_hex_job_den
 hennepin_county_hex_job_density_quantile
 
 #perceived job density; QUANTILE, n=7
-hennepin_county_hex_perceived_job_density_quantile <- tm_shape(hennepin_county_hex_job_density) +
+hennepin_county_hex_perceived_job_density_quantile <- tm_shape(hennepin_county_hex_job_density, unit = "mi") +
   tm_polygons(
     "perceived_job_density",
     style = "quantile",
@@ -592,7 +592,7 @@ qtm(hennepin_county_hex_job_density, fill = "perceived_job_density")
 # --------------------
 
 #regular job density; QUANTILE, n=7
-nyc_hex_job_density_quantile <- tm_shape(nyc_hex_job_density) +
+nyc_hex_job_density_quantile <- tm_shape(nyc_hex_job_density, unit = "mi") +
   tm_polygons(
     "job_density_acre",
     style = "quantile",
@@ -604,7 +604,7 @@ nyc_hex_job_density_quantile <- tm_shape(nyc_hex_job_density) +
 nyc_hex_job_density_quantile
 
 #perceived job density; QUANTILE, n=7
-nyc_hex_perceived_job_density_quantile <- tm_shape(nyc_hex_job_density) +
+nyc_hex_perceived_job_density_quantile <- tm_shape(nyc_hex_job_density, unit = "mi") +
   tm_polygons(
     "perceived_job_density",
     style = "quantile",
