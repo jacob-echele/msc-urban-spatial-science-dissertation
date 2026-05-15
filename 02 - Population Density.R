@@ -122,7 +122,7 @@ qtm(stl_hex_population_density, fill = "pop_density_acre")
 #    actual mapping
 # --------------------
 
-#raw fiscal productivity; QUANTILE, n=6
+#raw fiscal productivity; QUANTILE, n=7
 stl_hex_population_density_quantile <- tm_shape(stl_hex_population_density) +
   tm_polygons(
     "pop_density_acre",
