@@ -678,3 +678,10 @@ nyc_hex_perceived_job_density_quantile_with_roads <- nyc_hex_perceived_job_densi
   tm_scalebar(breaks = c(0,2,4), text.size = 1, position = c("left", "top"))
 
 nyc_hex_perceived_job_density_quantile_with_roads
+
+# -----------------------------------------------------
+#    saving outputs for future use/easier processing
+# -----------------------------------------------------
+
+#save processed data
+saveRDS(nyc_hex_job_density, "Processed Data/nyc_hex_job_density.rds")
