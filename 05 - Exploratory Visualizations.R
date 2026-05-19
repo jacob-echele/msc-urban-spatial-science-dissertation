@@ -9,9 +9,9 @@ library(readr)
 library(stringr)
 library(RColorBrewer)
 
-##############################################
-#   EXPLORATORY ANALYSIS AND VISUALIZATIONS
-##############################################
+#################################
+#   EXPLORATORY VISUALIZATIONS
+#################################
 
 #set working directory
 setwd("C:/Users/User/OneDrive/Desktop/School/7- Graduate School/Term 2/Dissertation/Data/")
