@@ -72,7 +72,7 @@ fiscal_distribution_plot <- ggplot(
   theme(text = element_text(family = "Times"),
     plot.title = element_text(size = 12, hjust = .5),
     axis.title = element_text(size = 11),
-    axis.text = element_text(size = 10), legend.position = "none", panel.grid.minor = element_blank())
+    axis.text = element_text(size = 10), legend.position = "none", panel.grid.minor = element_blank()) #center title, remove small gridlines
 
 fiscal_distribution_plot
 
@@ -83,6 +83,212 @@ fiscal_distribution_plot
 ggsave(
   "Outputs/fiscal_productivity_distribution.png",
   fiscal_distribution_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+##########################################
+#   POPULATION DENSITY VIOLIN BOX PLOT
+##########################################
+
+#read processed outputs
+stl_hex_population_density <- readRDS("Processed Data/stl_hex_population_density.rds")
+hennepin_county_hex_population_density <- readRDS("Processed Data/hennepin_county_hex_population_density.rds")
+nyc_hex_population_density <- readRDS("Processed Data/nyc_hex_population_density.rds")
+
+#remove geometry and combine into one dF
+population_density_distribution <- bind_rows(
+  stl_hex_population_density%>%
+    st_drop_geometry()%>%
+    mutate(city = "St. Louis"),
+  hennepin_county_hex_population_density%>%
+    st_drop_geometry()%>%
+    mutate(city = "Minneapolis"),
+  nyc_hex_population_density%>%
+    st_drop_geometry()%>%
+    mutate(city = "New York"))%>%
+  select(city, pop_density_acre)%>%
+  filter(pop_density_acre >= .1)%>% #remove zeros and effectively empty hexes for log scale and visualization
+  mutate(
+    city = factor(city,levels = c( #keep city order consistent with dissertation
+        "St. Louis",
+        "Minneapolis",
+        "New York")))
+
+# ---------------------
+#    actual plotting
+# ---------------------
+
+#population density distribution figure
+population_density_distribution_plot <- ggplot(
+  population_density_distribution,
+  aes(
+    x = city,
+    y = pop_density_acre,
+    fill = city
+  )
+) +
+  geom_violin(alpha = .8, trim = FALSE) +
+  geom_boxplot(width = .12, fill = "white", outlier.shape = NA) +
+  scale_fill_brewer(palette = "Blues") +
+  scale_y_log10(labels = scales::label_number()) + #log transform display only
+  labs(
+    title = "Distribution of Population Density",
+    x = NULL,
+    y = "Population Density (people per acre, log scale)"
+  ) +
+  theme_minimal() +
+  theme(text = element_text(family = "Times"),
+    plot.title = element_text(size = 12, hjust = .5),
+    axis.title = element_text(size = 11), axis.text = element_text(size = 10),legend.position = "none", panel.grid.minor = element_blank()) #center title, remove small gridlines
+
+population_density_distribution_plot
+
+# --------------------
+#    saving outputs
+# --------------------
+
+ggsave(
+  "Outputs/population_density_distribution.png",
+  population_density_distribution_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+############################################
+#   PERCEIVED JOB DENSITY VIOLIN BOX PLOT
+############################################
+
+#read processed outputs
+stl_hex_job_density <- readRDS("Processed Data/stl_hex_job_density.rds")
+hennepin_county_hex_job_density <- readRDS("Processed Data/hennepin_county_hex_job_density.rds")
+nyc_hex_job_density <- readRDS("Processed Data/nyc_hex_job_density.rds")
+
+#remove geometry and combine into one dF
+job_density_distribution <- bind_rows(
+  stl_hex_job_density%>%
+    st_drop_geometry()%>%
+    mutate(city = "St. Louis"),
+  hennepin_county_hex_job_density%>%
+    st_drop_geometry()%>%
+    mutate(city = "Minneapolis"),
+  nyc_hex_job_density%>%
+    st_drop_geometry()%>%
+    mutate(city = "New York"))%>%
+  select(city, perceived_job_density)%>%
+  filter(perceived_job_density > 0)%>% #remove zeros and effectively empty hexes for log scale and visualization
+  mutate(
+    city = factor(city,levels = c( #keep city order consistent with dissertation
+      "St. Louis",
+      "Minneapolis",
+      "New York")))
+
+# ---------------------
+#    actual plotting
+# ---------------------
+
+#population density distribution figure
+job_density_distribution_plot <- ggplot(
+  job_density_distribution,
+  aes(
+    x = city,
+    y = perceived_job_density,
+    fill = city
+  )
+) +
+  geom_violin(alpha = .8, trim = FALSE) +
+  geom_boxplot(width = .12, fill = "white", outlier.shape = NA) +
+  scale_fill_brewer(palette = "Purples") +
+  scale_y_log10(labels = scales::label_number()) + #log transform display only
+  labs(
+    title = "Distribution of Perceived Job Density",
+    x = NULL,
+    y = "Perceived Jobs per acre (log scale)"
+  ) +
+  theme_minimal() +
+  theme(text = element_text(family = "Times"),
+        plot.title = element_text(size = 12, hjust = .5),
+        axis.title = element_text(size = 11), axis.text = element_text(size = 10),legend.position = "none", panel.grid.minor = element_blank()) #center title, remove small gridlines
+
+job_density_distribution_plot
+
+# --------------------
+#    saving outputs
+# --------------------
+
+ggsave(
+  "Outputs/job_density_distribution.png",
+  job_density_distribution_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+############################################
+#   TRANSIT ACCESSIBILITY VIOLIN BOX PLOT
+############################################
+
+stl_hex_transit_accessibility <- readRDS("Processed Data/stl_hex_transit_accessibility.rds")
+hennepin_county_hex_transit_accessibility <- readRDS("Processed Data/hennepin_county_hex_transit_accessibility.rds")
+nyc_hex_transit_accessibility <- readRDS("Processed Data/nyc_hex_transit_accessibility.rds")
+
+#remove geometry and combine into one dF
+transit_accessibility_distribution <- bind_rows(
+  stl_hex_transit_accessibility%>%
+    st_drop_geometry()%>%
+    mutate(city = "St. Louis"),
+  hennepin_county_hex_transit_accessibility%>%
+    st_drop_geometry()%>%
+    mutate(city = "Minneapolis"),
+  nyc_hex_transit_accessibility%>%
+    st_drop_geometry()%>%
+    mutate(city = "New York"))%>%
+  select(city, transit_access_jobs_45)%>%
+  filter(!is.na(transit_access_jobs_45), transit_access_jobs_45 > 0)%>% #remove zeros and effectively empty hexes for log scale and visualization
+  mutate(
+    city = factor(city,levels = c( #keep city order consistent with dissertation
+      "St. Louis",
+      "Minneapolis",
+      "New York")))
+
+# ---------------------
+#    actual plotting
+# ---------------------
+
+#population density distribution figure
+transit_accessibility_distribution_plot <- ggplot(
+  transit_accessibility_distribution,
+  aes(
+    x = city,
+    y = transit_access_jobs_45,
+    fill = city
+  )
+) +
+  geom_violin(alpha = .8, trim = FALSE) +
+  geom_boxplot(width = .12, fill = "white", outlier.shape = NA) +
+  scale_fill_brewer(palette = "Oranges") +
+  scale_y_log10(labels = scales::label_number()) + #log transform display only
+  labs(
+    title = "Distribution of Transportation Accessibility",
+    x = NULL,
+    y = "Jobs Accessible within 45 minutes (log scale)"
+  ) +
+  theme_minimal() +
+  theme(text = element_text(family = "Times"),
+        plot.title = element_text(size = 12, hjust = .5),
+        axis.title = element_text(size = 11), axis.text = element_text(size = 10),legend.position = "none", panel.grid.minor = element_blank()) #center title, remove small gridlines
+
+transit_accessibility_distribution_plot
+
+# --------------------
+#    saving outputs
+# --------------------
+
+ggsave(
+  "Outputs/transit_accessibility_distribution.png",
+  transit_accessibility_distribution_plot,
   width = 8,
   height = 5,
   dpi = 300
