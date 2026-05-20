@@ -9,6 +9,7 @@ library(RColorBrewer)
 library(tidyverse)
 library(corrplot) #for correlation matrix
 library(Hmisc) #for correlation matrix
+library(car) #for VIF testing
 
 ###########################
 #   EXPLORATORY ANALYSIS
@@ -673,3 +674,122 @@ saveRDS(
   nyc_correlation_matrix,
   "Processed Data/nyc_correlation_matrix.rds"
 )
+
+##################
+#   VIF TESTING 
+##################
+
+#St. Louis
+stl_vif_data <- stl_hex_analysis%>%
+  filter(
+    !is.na(fiscal_productivity), #filter out NAs
+    !is.na(pop_density_acre),
+    !is.na(perceived_job_density),
+    !is.na(transit_access_jobs_45),
+    fiscal_productivity > 0 #filter out 0s
+  )%>%
+  mutate(
+    log_fiscal_productivity = log10(fiscal_productivity),
+    log_pop_density_acre = log10(pop_density_acre+1),
+    log_perceived_job_density = log10(perceived_job_density+1),
+    log_transit_access_jobs_45 = log10(transit_access_jobs_45+1)
+  )
+
+stl_vif_model <- lm(
+  log_fiscal_productivity~ #indicates the left is explained by right; so fp is explained by pop dense + job dense + transit access 
+    log_pop_density_acre+
+    log_perceived_job_density+
+    log_transit_access_jobs_45,
+  data = stl_vif_data
+)
+
+stl_vif <- vif(stl_vif_model)
+
+stl_vif
+
+#Minneapolis
+minneapolis_vif_data <- hennepin_county_hex_analysis%>%
+  filter(
+    !is.na(fiscal_productivity), #filter out NAs
+    !is.na(pop_density_acre),
+    !is.na(perceived_job_density),
+    !is.na(transit_access_jobs_45),
+    fiscal_productivity > 0 #filter out 0s
+  )%>%
+  mutate(
+    log_fiscal_productivity = log10(fiscal_productivity),
+    log_pop_density_acre = log10(pop_density_acre+1),
+    log_perceived_job_density = log10(perceived_job_density+1),
+    log_transit_access_jobs_45 = log10(transit_access_jobs_45+1)
+  )
+
+minneapolis_vif_model <- lm(
+  log_fiscal_productivity~ #indicates the left is explained by right; so fp is explained by pop dense + job dense + transit access 
+    log_pop_density_acre+
+    log_perceived_job_density+
+    log_transit_access_jobs_45,
+  data = minneapolis_vif_data
+)
+
+minneapolis_vif <- vif(minneapolis_vif_model)
+
+minneapolis_vif
+
+#New York
+nyc_vif_data <- nyc_hex_analysis%>%
+  filter(
+    !is.na(fiscal_productivity), #filter out NAs
+    !is.na(pop_density_acre),
+    !is.na(perceived_job_density),
+    !is.na(transit_access_jobs_45),
+    fiscal_productivity > 0 #filter out 0s
+  )%>%
+  mutate(
+    log_fiscal_productivity = log10(fiscal_productivity),
+    log_pop_density_acre = log10(pop_density_acre+1),
+    log_perceived_job_density = log10(perceived_job_density+1),
+    log_transit_access_jobs_45 = log10(transit_access_jobs_45+1)
+  )
+
+nyc_vif_model <- lm(
+  log_fiscal_productivity~ #indicates the left is explained by right; so fp is explained by pop dense + job dense + transit access 
+    log_pop_density_acre+
+    log_perceived_job_density+
+    log_transit_access_jobs_45,
+  data = nyc_vif_data
+)
+
+nyc_vif <- vif(nyc_vif_model)
+
+nyc_vif
+
+# ------------------
+#    combined vif
+# ------------------
+
+combined_vif_data <- correlation_data%>%
+  filter(
+    !is.na(fiscal_productivity), #filter out NAs
+    !is.na(pop_density_acre),
+    !is.na(perceived_job_density),
+    !is.na(transit_access_jobs_45),
+    fiscal_productivity > 0 #filter out 0s
+  )%>%
+  mutate(
+    log_fiscal_productivity = log10(fiscal_productivity),
+    log_pop_density_acre = log10(pop_density_acre+1),
+    log_perceived_job_density = log10(perceived_job_density+1),
+    log_transit_access_jobs_45 = log10(transit_access_jobs_45+1)
+  )
+
+combined_vif_model <- lm(
+  log_fiscal_productivity~ #indicates the left is explained by right; so fp is explained by pop dense + job dense + transit access 
+    log_pop_density_acre+
+    log_perceived_job_density+
+    log_transit_access_jobs_45,
+  data = combined_vif_data
+)
+
+combined_vif <- vif(combined_vif_model)
+
+combined_vif
