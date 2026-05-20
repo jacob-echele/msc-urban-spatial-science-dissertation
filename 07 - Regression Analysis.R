@@ -8,6 +8,7 @@ library(stringr)
 library(RColorBrewer)
 library(tidyverse)
 library(car)
+library(spdep)
 
 ###########################
 #   REGRESSION ANALYSIS
@@ -86,3 +87,158 @@ nyc_regression_model <- lm(
 )
 
 summary(nyc_regression_model)
+
+# -----------------------
+#    residual graphing
+# -----------------------
+
+plot(combined_regression_model)
+plot(stl_regression_model)
+plot(minneapolis_regression_model)
+plot(nyc_regression_model)
+
+########################
+#   MORAN'S I TESTING
+########################
+
+# ---------------
+#    St. Louis
+# ---------------
+
+#add model residuals to regression data
+stl_residuals <- stl_regression_data%>%
+  mutate(
+    residuals = residuals(stl_regression_model)
+  )%>%
+  select(hex_id, residuals)
+
+#join residuals back to spatial hex dataset
+stl_hex_analysis_residuals <- stl_hex_fp%>%
+  left_join(
+    stl_residuals,
+    by = "hex_id"
+  )%>%
+  filter(!is.na(residuals))
+
+#check rows match
+nrow(stl_hex_analysis_residuals)
+length(residuals(stl_regression_model))
+
+#create neighbor structure
+stl_neighbors <- stl_hex_analysis_residuals%>%
+  st_geometry()%>%
+  poly2nb()
+
+#create weights matrix
+stl_weights <- nb2listw(
+  stl_neighbors,
+  style = "W",
+  zero.policy = TRUE
+)
+
+#run morans i
+stl_residual_moran <- moran.test(
+  stl_hex_analysis_residuals$residuals,
+  stl_weights,
+  zero.policy = TRUE
+)
+
+stl_residual_moran
+
+#quick map
+qtm(stl_hex_analysis_residuals, fill = "residuals")
+
+
+# -----------------
+#    Minneapolis
+# -----------------
+
+#add model residuals to regression data
+minneapolis_residuals <- minneapolis_regression_data%>%
+  mutate(
+    residuals = residuals(minneapolis_regression_model)
+  )%>%
+  select(hex_id, residuals)
+
+#join residuals back to spatial hex dataset
+minneapolis_hex_analysis_residuals <- hennepin_county_hex_fp%>%
+  left_join(
+    minneapolis_residuals,
+    by = "hex_id"
+  )%>%
+  filter(!is.na(residuals))
+
+#check rows match
+nrow(minneapolis_hex_analysis_residuals)
+length(residuals(minneapolis_regression_model))
+
+#create neighbor structure
+minneapolis_neighbors <- minneapolis_hex_analysis_residuals%>%
+  st_geometry()%>%
+  poly2nb()
+
+#create weights matrix
+minneapolis_weights <- nb2listw(
+  minneapolis_neighbors,
+  style = "W",
+  zero.policy = TRUE
+)
+
+#run morans i
+minneapolis_residual_moran <- moran.test(
+  minneapolis_hex_analysis_residuals$residuals,
+  minneapolis_weights,
+  zero.policy = TRUE
+)
+
+minneapolis_residual_moran
+
+#quick map
+qtm(minneapolis_hex_analysis_residuals, fill = "residuals")
+
+# --------------
+#    New York
+# --------------
+
+#add model residuals to regression data
+nyc_residuals <- nyc_regression_data%>%
+  mutate(
+    residuals = residuals(nyc_regression_model)
+  )%>%
+  select(hex_id, residuals)
+
+#join residuals back to spatial hex dataset
+nyc_hex_analysis_residuals <- nyc_hex_fp%>%
+  left_join(
+    nyc_residuals,
+    by = "hex_id"
+  )%>%
+  filter(!is.na(residuals))
+
+#check rows match
+nrow(nyc_hex_analysis_residuals)
+length(residuals(nyc_regression_model))
+
+#create neighbor structure
+nyc_neighbors <- nyc_hex_analysis_residuals%>%
+  st_geometry()%>%
+  poly2nb()
+
+#create weights matrix
+nyc_weights <- nb2listw(
+  nyc_neighbors,
+  style = "W",
+  zero.policy = TRUE
+)
+
+#run morans i
+nyc_residual_moran <- moran.test(
+  nyc_hex_analysis_residuals$residuals,
+  nyc_weights,
+  zero.policy = TRUE
+)
+
+nyc_residual_moran
+
+#quick map
+qtm(nyc_hex_analysis_residuals, fill = "residuals")
