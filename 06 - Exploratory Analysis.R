@@ -467,4 +467,209 @@ corrplot(
 #   CITY-SPECIFIC CORRELATION MATRICES
 #########################################
 
+# -------------------------------
+#    prepare variables by city
+# -------------------------------
+
+#St. Louis 
+stl_correlation_variables <- correlation_data%>%
+  filter(city=="St. Louis")%>%
+  select(fiscal_productivity, pop_density_acre, perceived_job_density, transit_access_jobs_45)%>%
+  filter(
+    fiscal_productivity > 0,
+    pop_density_acre > 0,
+    perceived_job_density > 0,
+    transit_access_jobs_45 > 0
+  )%>%
+  mutate(
+    fiscal_productivity = log10(fiscal_productivity),
+    pop_density_acre = log10(pop_density_acre),
+    perceived_job_density = log10(perceived_job_density),
+    transit_access_jobs_45 = log10(transit_access_jobs_45)
+  )
+
+#Minneapolis
+minneapolis_correlation_variables <- correlation_data%>%
+  filter(city=="Minneapolis")%>%
+  select(fiscal_productivity, pop_density_acre, perceived_job_density, transit_access_jobs_45)%>%
+  filter(
+    fiscal_productivity > 0,
+    pop_density_acre > 0,
+    perceived_job_density > 0,
+    transit_access_jobs_45 > 0
+  )%>%
+  mutate(
+    fiscal_productivity = log10(fiscal_productivity),
+    pop_density_acre = log10(pop_density_acre),
+    perceived_job_density = log10(perceived_job_density),
+    transit_access_jobs_45 = log10(transit_access_jobs_45)
+  )
+
+#New York
+nyc_correlation_variables <- correlation_data%>%
+  filter(city=="New York")%>%
+  select(fiscal_productivity, pop_density_acre, perceived_job_density, transit_access_jobs_45)%>%
+  filter(
+    fiscal_productivity > 0,
+    pop_density_acre > 0,
+    perceived_job_density > 0,
+    transit_access_jobs_45 > 0
+  )%>%
+  mutate(
+    fiscal_productivity = log10(fiscal_productivity),
+    pop_density_acre = log10(pop_density_acre),
+    perceived_job_density = log10(perceived_job_density),
+    transit_access_jobs_45 = log10(transit_access_jobs_45)
+  )
+
+# ----------------------
+#    matrices by city
+# ----------------------
+
+#St. Louis correlation matrix
+stl_correlation_matrix <- cor(
+  stl_correlation_variables,
+  use = "complete.obs",
+  method = "pearson"
+)
+
+#Minneapolis correlation matrix
+minneapolis_correlation_matrix <- cor(
+  minneapolis_correlation_variables,
+  use = "complete.obs",
+  method = "pearson"
+)
+
+#New York correlation matrix
+nyc_correlation_matrix <- cor(
+  nyc_correlation_variables,
+  use = "complete.obs",
+  method = "pearson"
+)
+
+#rename rows and columns for cleaner figures
+correlation_names <- c("Fiscal Productivity", "Population Density", "Perceived Job Density", "Transit Accessibility")
+
+colnames(stl_correlation_matrix) <- correlation_names
+rownames(stl_correlation_matrix) <- correlation_names
+
+colnames(minneapolis_correlation_matrix) <- correlation_names
+rownames(minneapolis_correlation_matrix) <- correlation_names
+
+colnames(nyc_correlation_matrix) <- correlation_names
+rownames(nyc_correlation_matrix) <- correlation_names
+
+#check matrices
+stl_correlation_matrix
+minneapolis_correlation_matrix
+nyc_correlation_matrix
+
+# -----------------------------
+#    plotting matrix by city
+# -----------------------------
+
+#create png output
+png(
+  "Outputs/correlation_matrix_by_city.png",
+  width = 7,
+  height = 10,
+  units = "in",
+  res = 300
+)
+
+#split plotting window into 3 rows and 1 column
+par(
+  mfrow = c(3,1),
+  family = "Times",
+  mar = c(1,1,3,1)
+)
+
 #St. Louis
+corrplot(
+  stl_correlation_matrix,
+  method = "circle",
+  type = "lower",
+  addCoef.col = "black",
+  number.cex = 1.1,
+  tl.col = "black",
+  tl.srt = 45,
+  tl.cex = 1.05,
+  diag = FALSE,
+  title = "St. Louis",
+  mar = c(1,1,3,1),
+  col = colorRampPalette(
+    c(
+      "#ca0020",
+      "white",
+      "#0571b0"
+    )
+  )(200)
+)
+
+#Minneapolis
+corrplot(
+  minneapolis_correlation_matrix,
+  method = "circle",
+  type = "lower",
+  addCoef.col = "black",
+  number.cex = 1.1,
+  tl.col = "black",
+  tl.srt = 45,
+  tl.cex = 1.05,
+  diag = FALSE,
+  title = "Minneapolis",
+  mar = c(1,1,3,1),
+  col = colorRampPalette(
+    c(
+      "#ca0020",
+      "white",
+      "#0571b0"
+    )
+  )(200)
+)
+
+#New York City
+corrplot(
+  nyc_correlation_matrix,
+  method = "circle",
+  type = "lower",
+  addCoef.col = "black",
+  number.cex = 1.1,
+  tl.col = "black",
+  tl.srt = 45,
+  tl.cex = 1.05,
+  diag = FALSE,
+  title = "New York City",
+  mar = c(1,1,3,1),
+  col = colorRampPalette(
+    c(
+      "#ca0020",
+      "white",
+      "#0571b0"
+    )
+  )(200)
+)
+
+#save and close plotting device
+dev.off()
+
+correlation_matrix_by_city.png #automatically creates combined figure and puts it into outputs folder
+
+# ------------------
+#    save outputs
+# ------------------
+
+saveRDS(
+  stl_correlation_matrix,
+  "Processed Data/stl_correlation_matrix.rds"
+)
+
+saveRDS(
+  minneapolis_correlation_matrix,
+  "Processed Data/minneapolis_correlation_matrix.rds"
+)
+
+saveRDS(
+  nyc_correlation_matrix,
+  "Processed Data/nyc_correlation_matrix.rds"
+)
