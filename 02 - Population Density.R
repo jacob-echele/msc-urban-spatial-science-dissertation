@@ -446,27 +446,25 @@ nyc_tract_hex_intersections <- nyc_tract_hex_intersections%>%
 #    calculate population metrics
 # ----------------------------------
 
-#sum allocated population by hex cell
+#sum allocated population and land area by hex cell
 nyc_population_by_hex <- nyc_tract_hex_intersections%>%
   st_drop_geometry()%>%
   group_by(hex_id)%>%
   summarise(
-    total_population = sum(allocated_population, na.rm = TRUE)
+    total_population = sum(allocated_population, na.rm = TRUE),
+    land_area_acres = sum(intersect_area, na.rm = TRUE) / 43560
   )
 
-#remove tiny clipped edge hexes that are throwing off density numbers
-nyc_hex_1km_filtered <- nyc_hex_1km%>%
-  mutate(
-    area_acres = as.numeric(st_area(.)) / 43560
-  )%>%
-  filter(area_acres >= 50) #mainly located on coastlines while keeping larger, legitmate partial edge hexes
-
 #join population totals back to hex grid and calculate density
-nyc_hex_population_density <- nyc_hex_1km_filtered%>%
+nyc_hex_population_density <- nyc_hex_1km%>%
   left_join(nyc_population_by_hex, by = "hex_id")%>%
+  filter(
+    !is.na(land_area_acres),
+    land_area_acres >= 50 #filtering out weird hexes clipped to shorelines/water/airports/etc that throw off count
+  )%>%
   mutate(
     total_population = replace_na(total_population, 0),
-    pop_density_acre = total_population / area_acres
+    pop_density_acre = total_population / land_area_acres
   )
 
 #quick map
