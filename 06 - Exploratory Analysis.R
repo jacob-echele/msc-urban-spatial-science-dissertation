@@ -793,3 +793,50 @@ combined_vif_model <- lm(
 combined_vif <- vif(combined_vif_model)
 
 combined_vif
+
+###############################
+#   SAVE REGRESSION INPUTS
+###############################
+
+#save city-specific analysis datasets
+saveRDS(
+  stl_hex_analysis,
+  "Processed Data/Regression Outputs/stl_hex_analysis.rds"
+)
+
+saveRDS(
+  hennepin_county_hex_analysis,
+  "Processed Data/Regression Outputs/hennepin_county_hex_analysis.rds"
+)
+
+saveRDS(
+  nyc_hex_analysis,
+  "Processed Data/Regression Outputs/nyc_hex_analysis.rds"
+)
+
+#save combined analysis dataset
+saveRDS(
+  correlation_data,
+  "Processed Data/Regression Outputs/combined_correlation_data.rds"
+)
+
+#save cleaned VIF/regression-ready datasets
+saveRDS(
+  stl_vif_data,
+  "Processed Data/Regression Outputs/stl_regression_data.rds"
+)
+
+saveRDS(
+  minneapolis_vif_data,
+  "Processed Data/Regression Outputs/minneapolis_regression_data.rds"
+)
+
+saveRDS(
+  nyc_vif_data,
+  "Processed Data/Regression Outputs/nyc_regression_data.rds"
+)
+
+saveRDS(
+  combined_vif_data,
+  "Processed Data/Regression Outputs/combined_regression_data.rds"
+)
