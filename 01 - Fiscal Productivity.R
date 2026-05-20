@@ -679,8 +679,12 @@ nyc_parcels <- nyc_parcels%>%
 #    making hex map
 # --------------------
 
+#combine borough boundaries into one study area
+nyc_study_area <- st_union(nyc_boundaries)
+
+#create hex map
 nyc_hex_1km <- st_make_grid(
-  nyc_boundaries,
+  nyc_study_area,
   cellsize = 3280, #3280 ft in one kilometer
   square = FALSE
 )%>%
@@ -688,7 +692,7 @@ nyc_hex_1km <- st_make_grid(
   mutate(hex_id = row_number())
 
 #link hex map to study area
-nyc_hex_1km <- st_intersection(nyc_hex_1km, nyc_boundaries)%>%
+nyc_hex_1km <- st_intersection(nyc_hex_1km, nyc_study_area)%>%
   select(hex_id, geometry)
 
 #assign centroids to parcels
