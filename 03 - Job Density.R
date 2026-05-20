@@ -493,7 +493,7 @@ nyc_census_tracts <- st_transform(nyc_census_tracts, st_crs(nyc_hex_1km))
 #read in census blocks spatial data b/c LODES data is at block level NOT tract level
 new_york_census_blocks <- st_read("Shapefiles/New York City/new-york-census-blocks/tl_2021_36_tabblock20.shp")%>%
   clean_names()%>%
-  st_transform(st_crs(hennepin_county_hex_1km))%>%
+  st_transform(st_crs(nyc_hex_1km))%>%
   mutate(geoid = as.character(geoid20)) #rename geoid20 to match geoid
 
 #make sure census blocks use same CRS as hex grid
@@ -584,8 +584,8 @@ nyc_hex_job_density$perceived_job_density <- lag.listw( #calculates spatial lag
 )
 
 #quick map
-qtm(hennepin_county_hex_job_density, fill = "job_density_acre")
-qtm(hennepin_county_hex_job_density, fill = "perceived_job_density")
+qtm(nyc_hex_job_density, fill = "job_density_acre")
+qtm(nyc_hex_job_density, fill = "perceived_job_density")
 
 # --------------------
 #    actual mapping
