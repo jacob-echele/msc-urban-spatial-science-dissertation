@@ -9,6 +9,7 @@ library(RColorBrewer)
 library(tidyverse)
 library(car)
 library(spdep)
+library(tmap)
 
 ###########################
 #   REGRESSION ANALYSIS
@@ -100,6 +101,16 @@ plot(nyc_regression_model)
 ########################
 #   MORAN'S I TESTING
 ########################
+
+#read processed outputs
+stl_hex_fp <- readRDS("Processed Data/stl_hex_fiscal_productivity.rds")
+hennepin_county_hex_fp <- readRDS("Processed Data/hennepin_county_hex_fiscal_productivity.rds")
+nyc_hex_fp <- readRDS("Processed Data/nyc_hex_fiscal_productivity.rds")
+
+#ensure hex_id data type matches
+stl_hex_fp$hex_id <- as.character(stl_hex_fp$hex_id)
+hennepin_county_hex_fp$hex_id <- as.character(hennepin_county_hex_fp$hex_id)
+nyc_hex_fp$hex_id <- as.character(nyc_hex_fp$hex_id)
 
 # ---------------
 #    St. Louis
@@ -242,3 +253,87 @@ nyc_residual_moran
 
 #quick map
 qtm(nyc_hex_analysis_residuals, fill = "residuals")
+
+# ----------------------
+#    combined mapping
+# ----------------------
+
+#St. Louis
+stl_hex_analysis_residuals_map <- tm_shape(stl_hex_analysis_residuals, unit = "mi") +
+  tm_polygons(
+    fill = "residuals",
+    fill.scale = tm_scale_intervals(
+      style = "fixed",
+      breaks = c(-4, -3, -2, -1, 0, 1, 2),
+      values = "PRGn"
+    ),
+    fill.legend = tm_legend(
+      title = "Residuals"
+    )
+  ) +
+  tm_borders(col = "black", lwd = .15) +
+  tm_title("St. Louis", size = 1.2, fontfamily = "Times") +
+  tm_layout(frame = FALSE, legend.outside = FALSE, fontfamily = "Times") +
+  tm_compass(type = "arrow", position = c("left", "top"), size = 1.5) +
+  tm_scalebar(breaks = c(0, 2, 4), text.size = 1, position = c(0.5, 0.06))
+
+stl_hex_analysis_residuals_map
+
+#Minneapolis
+minneapolis_hex_analysis_residuals_map <- tm_shape(minneapolis_hex_analysis_residuals, unit = "mi") +
+  tm_polygons(
+    fill = "residuals",
+    fill.scale = tm_scale_intervals(
+      style = "fixed",
+      breaks = c(-4, -3, -2, -1, 0, 1, 2),
+      values = "PRGn"
+    ),
+    fill.legend = tm_legend(
+      title = "Residuals"
+    )
+  ) +
+  tm_borders(col = "black", lwd = .15) +
+  tm_title("Minneapolis", size = 1.2, fontfamily = "Times") +
+  tm_layout(frame = FALSE, legend.outside = FALSE, fontfamily = "Times") +
+  tm_compass(type = "arrow", position = c("left", "top"), size = 1.5) +
+  tm_scalebar(breaks = c(0, 2, 4), text.size = 1, position = c(0.5, 0.06))
+
+minneapolis_hex_analysis_residuals_map
+
+#New York City
+nyc_hex_analysis_residuals_map <- tm_shape(nyc_hex_analysis_residuals, unit = "mi") +
+  tm_polygons(
+    fill = "residuals",
+    fill.scale = tm_scale_intervals(
+      style = "fixed",
+      breaks = c(-4, -3, -2, -1, 0, 1, 2),
+      values = "PRGn"
+    ),
+    fill.legend = tm_legend(
+      title = "Residuals"
+    )
+  ) +
+  tm_borders(col = "black", lwd = .15) +
+  tm_title("New York City", size = 1.2, fontfamily = "Times") +
+  tm_layout(frame = FALSE, legend.outside = FALSE, fontfamily = "Times") +
+  tm_compass(type = "arrow", position = c("left", "top"), size = 1.5) +
+  tm_scalebar(breaks = c(0, 2, 4), text.size = 1, position = c(0.5, 0.06))
+
+nyc_hex_analysis_residuals_map
+
+#combine into three-panel figure
+residual_maps <- tmap_arrange(
+  stl_hex_analysis_residuals_map,
+  minneapolis_hex_analysis_residuals_map,
+  nyc_hex_analysis_residuals_map,
+  ncol = 1
+)
+
+#save outputs
+tmap_save(
+  residual_maps,
+  "Outputs/residual_maps.png",
+  width = 8,
+  height = 10,
+  dpi = 300
+)
