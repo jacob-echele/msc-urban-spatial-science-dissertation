@@ -445,6 +445,18 @@ correlation_matrix
 #    actual plotting
 # ---------------------
 
+png(
+  "Outputs/combined_correlation_matrix.png",
+  width = 7,
+  height = 7,
+  units = "in",
+  res = 300
+)
+
+par(
+  family = "Times"
+)
+
 #combined correlation matrix plot
 corrplot(
   correlation_matrix,
@@ -463,6 +475,10 @@ corrplot(
     )
   )(200) #sets number of colors in between max (blue) and min (red) values
 )
+
+dev.off()
+
+correlation_matrix
 
 #########################################
 #   CITY-SPECIFIC CORRELATION MATRICES
@@ -606,6 +622,8 @@ corrplot(
     )
   )(200)
 )
+
+stl_correlation_matrix
 
 #Minneapolis
 corrplot(
