@@ -7,6 +7,7 @@ library(tidyr)
 library(dplyr)
 library(readr)
 library(stringr)
+library(units)
 
 ######################################
 #   POPULATION DENSITY CALCULATIONS   
@@ -294,7 +295,11 @@ hennepin_county_hex_population_density <- hennepin_county_hex_1km%>%
   left_join(hennepin_county_population_by_hex, by = "hex_id")%>%
   mutate(
     total_population = replace_na(total_population, 0),
-    area_acres = as.numeric(st_area(.)) / 43560, #43,560 sqft per acre
+    area_acres = as.numeric(
+      units::set_units( #7/16/26 - unit correction/consistency
+        st_area(.),
+        "acre"
+      )),
     pop_density_acre = total_population / area_acres
   )
 
