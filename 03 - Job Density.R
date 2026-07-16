@@ -8,6 +8,7 @@ library(dplyr)
 library(readr)
 library(stringr)
 library(spdep) #for spatial dependency tests (perceived job density)
+library(units)
 
 ###############################
 #   JOB DENSITY CALCULATIONS   
@@ -340,7 +341,11 @@ hennepin_county_hex_job_density <- hennepin_county_hex_1km%>%
   left_join(hennepin_county_jobs_by_hex, by = "hex_id")%>%
   mutate(
     total_jobs = replace_na(total_jobs, 0),
-    area_acres = as.numeric(st_area(.)) / 43560, #43,560 sqft in an acre
+    area_acres = as.numeric(
+      units::set_units( #7/16/26 - unit correction/consistency
+        st_area(.),
+        "acre"
+      )),
     job_density_acre = total_jobs / area_acres
   )
 
