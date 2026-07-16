@@ -6,6 +6,7 @@ library(janitor)
 library(tidyr)
 library(dplyr)
 library(readr)
+library(units)
 
 #######################################
 #   FISCAL PRODCUTIVITY CALCULATIONS
@@ -406,24 +407,43 @@ hennepin_county_parcels <- hennepin_county_parcels%>%
 
 hennepin_county_parcels <- hennepin_county_parcels%>%
   mutate(
-    parcel_area_sqft = as.numeric(st_area(geometry)),
-    parcel_area_acres = parcel_area_sqft / 43560, #43,560 sqft per acre
+    parcel_area_sqft = as.numeric(
+      units::set_units( #7/16/26 - correcting units
+        st_area(geometry),
+        "ft^2" #automatically converts to sq ft
+      )
+    ),
+    parcel_area_acres = as.numeric(
+      units::set_units(
+        st_area(geometry),
+        "acre" #automatically converts to acres
+      )
+    ),
     value_per_acre = asd_total / parcel_area_acres,
-    log_value_per_acre = log1p(value_per_acre)
-  )%>%
-  filter( #filter out parcels with 0 sqft and NA values
-  parcel_area_sqft > 0,
-  !is.na(asd_total),
-  !is.na(value_per_acre),
-  is.finite(value_per_acre)
-)
+    log_value_per_acre = log1p(value_per_acre))
 
-#more filtering out unrealistic data
+#filtering for usable data/filtering out unrealistic data
 hennepin_county_parcels <- hennepin_county_parcels%>%
+  filter(
+    parcel_area_sqft > 0,
+    !is.na(asd_total),
+    !is.na(value_per_acre),
+    is.finite(value_per_acre)
+  )%>%
   filter(
     parcel_area_acres > 0,
     is.finite(value_per_acre),
     value_per_acre >= 0
+  )
+
+#checking that sq ft and acres were converted correctly
+hennepin_county_parcels%>%
+  st_drop_geometry()%>%
+  summarise(
+    maximum_conversion_difference = max(
+      abs(parcel_area_sqft - parcel_area_acres * 43560),
+      na.rm = TRUE
+    )
   )
 
 # --------------------
@@ -432,7 +452,7 @@ hennepin_county_parcels <- hennepin_county_parcels%>%
 
 hennepin_county_hex_1km <- st_make_grid(
   hennepin_county_borders,
-  cellsize = 3280, #3280 ft in one kilometer
+  cellsize = 1000, #1000 metres = 1 kilometre; consistent with UTM CRS
   square = FALSE
 )%>%
   st_sf()%>%
